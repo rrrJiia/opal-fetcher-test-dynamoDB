@@ -1,15 +1,15 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='opal-fetcher-test-dynamodb',  # Unique package name
+   name='opal-fetcher-test-dynamodb',  # Unique package name
     version='0.1.0',  # Initial version
     author='R',  # Replace with your name
-    author_email=' ',  # Replace with your email
+    author_email='',  # Replace with your email
     description='A short description of your package',
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
+    long_description=open('README.md').read(),  # Ensure README.md is present
+    long_description_content_type='text/markdown',  # README format
     url='https://github.com/rrrJiia/opal-fetcher-test-dynamoDB',  # Repository URL
-    packages=find_packages(),  # Automatically find packages in your directory
+    packages=find_packages(include=['opal_fetcher_test_dynamoDB', 'opal_fetcher_test_dynamoDB.*']),  # Find all packages
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
@@ -24,7 +24,7 @@ setup(
         'opal-common',
         'cachetools',
         'pydantic',
-        'flask',  # Corrected typo from 'flasl' to 'flask'
+        'flask',
     ],
-    include_package_data=True,  # Include non-code files from MANIFEST.in
+    include_package_data=True,
 )
