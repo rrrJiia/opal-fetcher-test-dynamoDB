@@ -1,32 +1,27 @@
-# provider.py
-from typing import Optional, List, Dict
 from pydantic import BaseModel, Field
+from typing import Optional, List, Dict
 import boto3
 from boto3.dynamodb.conditions import Key
 from opal_common.fetcher.fetch_provider import BaseFetchProvider
 from opal_common.fetcher.events import FetcherConfig, FetchEvent
 from cachetools import TTLCache
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-current_config = {"rivian_id": None}  # Shared state for configuration
 
 class DynamoDBFetcherConfig(FetcherConfig):
     fetcher: str = "DynamoDBFetchProvider"
     table_name: str = Field(
-        ..., 
-        description="The name of the DynamoDB table"
+         ..., 
+         description="The name of the DynamoDB table"
     )
     region_name: str = Field(
         "us-east-1", 
         description="The AWS region of the DynamoDB table"
-    )
-    rivian_id: Optional[str] = Field(
-        None,  # Changed to None to allow runtime input
-        description="The distinct key for fetching data"
     )
     fetch_one: bool = Field(
         False,
@@ -42,19 +37,13 @@ class DynamoDBFetchEvent(FetchEvent):
     fetcher: str = "DynamoDBFetchProvider"
     config: DynamoDBFetcherConfig = None
 
-
 class DynamoDBFetchProvider(BaseFetchProvider):
     # Create a cache with a maximum of 100 items and a TTL of 300 seconds (5 minutes)
     cache = TTLCache(maxsize=100, ttl=300)  
 
     def __init__(self, event: DynamoDBFetchEvent) -> None:
         super().__init__(event)
-        self.update_config()
-
-    def update_config(self):
-        global current_config
         config = self._event.config
-        config.rivian_id = current_config.get('rivian_id', config.rivian_id)
         self.dynamodb = boto3.resource(
             'dynamodb',
             region_name=config.region_name
@@ -65,26 +54,26 @@ class DynamoDBFetchProvider(BaseFetchProvider):
         return DynamoDBFetchEvent(**event.dict(exclude={"config"}), config=event.config)
 
     async def _fetch_(self):
-        self.update_config()  # Ensure the latest config is used
-        config = self._event.config
-        if not config.rivian_id:
-            logger.error("rivian_id is required but not provided.")
-            return {"error": "rivian_id is required but not provided."}
+        # Read the rivian_id from the environment variable
+        rivian_id = os.getenv('RIVIAN_ID')
+        if not rivian_id:
+            logger.error("RIVIAN_ID environment variable is not set")
+            return None
 
-        cache_key = f"{config.table_name}:{config.rivian_id}"
+        cache_key = f"{self._event.config.table_name}:{rivian_id}"
         if cache_key in self.cache:
             logger.info(f"Cache hit for key: {cache_key}")
             return self.cache[cache_key]
 
         try:
-            if config.fetch_one:
+            if self._event.config.fetch_one:
                 response = self.table.query(
-                    KeyConditionExpression=Key('rivian_id').eq(config.rivian_id),
+                    KeyConditionExpression=Key('rivian_id').eq(rivian_id),
                     Limit=1
                 )
             else:
                 response = self.table.query(
-                    KeyConditionExpression=Key('rivian_id').eq(config.rivian_id)
+                    KeyConditionExpression=Key('rivian_id').eq(rivian_id)
                 )
             data = response['Items']
             self.cache[cache_key] = data
