@@ -17,3 +17,5 @@ dependencies = [
     "pydantic",
     "flask"
 ]
+[project.urls]
+"Homepage" = "https://github.com/rrrJiia/opal-fetcher-test-dynamoDB"
