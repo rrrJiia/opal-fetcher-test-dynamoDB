@@ -3,12 +3,14 @@ requires = ["flit"]
 build-backend = "flit.buildapi"
 
 [project]
-name = "opal_fetcher_test_dynamodb"
-version = "0.1.3" 
-authors = [{name = "rola", email = "rjia41@gatech.edu"}]
+name = "opal-fetcher-test-dynamodb"
+version = "0.1.0"
 description = "A short description of your package"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 requires-python = ">=3.6"
 dependencies = [
     "boto3",
@@ -17,8 +19,15 @@ dependencies = [
     "pydantic",
     "flask"
 ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+
 [project.urls]
 "Homepage" = "https://github.com/rrrJiia/opal-fetcher-test-dynamoDB"
+
 [tool.flit.sdist]
 include = [
     "opal_fetcher_test_dynamoDB/__init__.py"
